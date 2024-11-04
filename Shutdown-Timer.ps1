@@ -175,61 +175,70 @@ function Handle-Interruption {
 }
 
 
-# Start script
-$shutdownDelay = Get-ShutdownDelay
-$totalSeconds = [int]$shutdownDelay * 60
-
-Write-Host "Countdown started for $shutdownDelay minute(s)..." -ForegroundColor "Green"
-
-# Run the countdown
-$remainingSeconds = $totalSeconds
-$WriteSecondLine = $true
-while ($true) {
-    $cancelled, $remainingSeconds = Start-Countdown -totalSeconds $remainingSeconds -WriteSecondLine ([ref]$WriteSecondLine)
-
-    if (-not $cancelled) {
-        # If countdown finished and was not cancelled, show shutdown confirmation
-        Play-SoundAlert  # Play sound alert before showing the message box
-        $overlayForm = Show-DimmedOverlay
-        $result = Show-MessageBox "Your PC will shut down in 60 seconds. Do you wish to continue?" "Shutdown Confirmation" $overlayForm
+function Main {
         
-        # Create a timer for the automatic shutdown after 60 seconds
-        $shutdownJob = Start-Job -ScriptBlock {
-            Start-Sleep -Seconds 60
-            shutdown /s /t 0
-        }
+    # Start script
+    Clear-Host
+    $shutdownDelay = Get-ShutdownDelay
+    $totalSeconds = [int]$shutdownDelay * 60
 
-        if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
-            # If Yes is pressed, shutdown command will be executed by the job
-            Stop-Job -Job $shutdownJob
-            Remove-Job -Job $shutdownJob
-            break
+    Write-Host "Countdown started for $shutdownDelay minute(s)..." -ForegroundColor "Green"
+
+    # Run the countdown
+    $remainingSeconds = $totalSeconds
+    $WriteSecondLine = $true
+
+
+    while ($true) {
+        $cancelled, $remainingSeconds = Start-Countdown -totalSeconds $remainingSeconds -WriteSecondLine ([ref]$WriteSecondLine)
+
+        if (-not $cancelled) {
+            # If countdown finished and was not cancelled, show shutdown confirmation
+            Play-SoundAlert  # Play sound alert before showing the message box
+            $overlayForm = Show-DimmedOverlay
+            $result = Show-MessageBox "Your PC will shut down in 60 seconds. Do you wish to continue?" "Shutdown Confirmation" $overlayForm
+            
+            # Create a timer for the automatic shutdown after 60 seconds
+            $shutdownJob = Start-Job -ScriptBlock {
+                Start-Sleep -Seconds 60
+                shutdown /s /t 0
+            }
+
+            if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
+                # If Yes is pressed, shutdown command will be executed by the job
+                Stop-Job -Job $shutdownJob
+                Remove-Job -Job $shutdownJob
+                break
+            } else {
+                Write-Host "`nShutdown aborted." -ForegroundColor "Red"
+                # Make sure there's exactly one line break here
+                Write-Host ""
+                Stop-Job -Job $shutdownJob
+                Remove-Job -Job $shutdownJob
+                break
+            }
         } else {
-            Write-Host "`nShutdown aborted." -ForegroundColor "Red"
-            # Make sure there's exactly one line break here
-            Write-Host ""
-            Stop-Job -Job $shutdownJob
-            Remove-Job -Job $shutdownJob
-            break
-        }
-    } else {
-        # Handle interruption
-        $remainingSeconds = Handle-Interruption -remainingSeconds $remainingSeconds -WriteSecondLine ([ref]$WriteSecondLine)
-        if ($remainingSeconds -eq -1) {
-            # Exit if the process was stopped
-            Write-Host "`nPress Enter to exit..." -ForegroundColor "Yellow"
-            Read-Host
-            exit
+            # Handle interruption
+            $remainingSeconds = Handle-Interruption -remainingSeconds $remainingSeconds -WriteSecondLine ([ref]$WriteSecondLine)
+            if ($remainingSeconds -eq -1) {
+                # Exit if the process was stopped
+                Write-Host "`nPress Enter to exit..." -ForegroundColor "Yellow"
+                Read-Host
+                exit
+            }
         }
     }
+
+    # Final messages with correct spacing
+    if ($remainingSeconds -eq 0) {
+        Write-Host "`nTime remaining: 00:00"
+        Write-Host "Shutdown aborted." -ForegroundColor "Red"
+        # Ensure only one line break before the exit prompt
+        Write-Host ""
+    }
+    Write-Host "Press Enter to exit..." -ForegroundColor "Yellow"
+    Read-Host
 }
 
-# Final messages with correct spacing
-if ($remainingSeconds -eq 0) {
-    Write-Host "`nTime remaining: 00:00"
-    Write-Host "Shutdown aborted." -ForegroundColor "Red"
-    # Ensure only one line break before the exit prompt
-    Write-Host ""
-}
-Write-Host "Press Enter to exit..." -ForegroundColor "Yellow"
-Read-Host
+
+Main
