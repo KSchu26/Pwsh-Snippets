@@ -163,11 +163,7 @@ function Handle-Interruption {
         elseif ($continueTimer -eq 'N') {
             $newTime = Read-Host "Do you wish to enter a different time? (Y/N)"
             if ($newTime -eq 'Y') {
-                Write-Host ""  # Add a line break before the next prompt
-                $shutdownDelay = Get-ShutdownDelay
-                $remainingSeconds = [int]$shutdownDelay * 60
-                Write-Host "Countdown started for $shutdownDelay minute(s)..." -ForegroundColor "Green"
-                return $remainingSeconds  # Return new remaining seconds for the countdown
+                Main
             }
             else {
                 Write-Host "`nProcess stopped." -ForegroundColor "Red"
