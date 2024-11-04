@@ -1,3 +1,9 @@
+<#
+    Original Code: /u/Mesyre
+    Edits: /u/OofItsKyle
+    Edited: November 4 2024
+#>
+
 # Load necessary assembly for Windows Forms
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
