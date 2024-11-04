@@ -67,7 +67,8 @@ function Get-ShutdownDelay {
             Clear-Line -UpLine 1
             Clear-Line -UpLine 1
             Clear-Line
-        } elseif ($shutdownDelay -eq 0) {
+        }
+        elseif ($shutdownDelay -eq 0) {
             Write-Host "Shutdown delay must be greater than 0." -ForegroundColor "Red"
             Start-Sleep -Seconds 5
             Clear-Line -UpLine 1
@@ -158,7 +159,8 @@ function Handle-Interruption {
             $WriteSecondLine.Value = $true
             $cancelled = $false
             return $remainingSeconds  # Return remaining seconds to continue
-        } elseif ($continueTimer -eq 'N') {
+        }
+        elseif ($continueTimer -eq 'N') {
             $newTime = Read-Host "Do you wish to enter a different time? (Y/N)"
             if ($newTime -eq 'Y') {
                 Write-Host ""  # Add a line break before the next prompt
@@ -166,7 +168,8 @@ function Handle-Interruption {
                 $remainingSeconds = [int]$shutdownDelay * 60
                 Write-Host "Countdown started for $shutdownDelay minute(s)..." -ForegroundColor "Green"
                 return $remainingSeconds  # Return new remaining seconds for the countdown
-            } else {
+            }
+            else {
                 Write-Host "`nProcess stopped." -ForegroundColor "Red"
                 return -1  # Indicate process should stop
             }
@@ -209,7 +212,8 @@ function Main {
                 Stop-Job -Job $shutdownJob
                 Remove-Job -Job $shutdownJob
                 break
-            } else {
+            }
+            else {
                 Write-Host "`nShutdown aborted." -ForegroundColor "Red"
                 # Make sure there's exactly one line break here
                 Write-Host ""
@@ -217,7 +221,8 @@ function Main {
                 Remove-Job -Job $shutdownJob
                 break
             }
-        } else {
+        }
+        else {
             # Handle interruption
             $remainingSeconds = Handle-Interruption -remainingSeconds $remainingSeconds -WriteSecondLine ([ref]$WriteSecondLine)
             if ($remainingSeconds -eq -1) {
