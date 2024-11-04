@@ -52,14 +52,27 @@ function Show-MessageBox {
 }
 
 # Get user input for shutdown delay
-function Get-UserInput {
-    param ([string]$promptMessage)
+function Get-ShutdownDelay {
+    param (
+        [string]$promptMessage = "Enter shutdown delay in minutes"
+    )
+    
     $shutdownDelay = 0
     while ($shutdownDelay -le 0) {
-        $shutdownDelay = [int](Read-Host "Enter shutdown delay in minutes")
-        if ($shutdownDelay -le 0) {
-            Write-Host "Invalid time entered. Please enter a time greater than 0." -ForegroundColor "Red"
-            Write-Host ""
+        $shutdownDelay = Read-Host $promptMessage
+        if ($shutdownDelay -notmatch '^\d+$') {
+            Write-Host "Invalid input. Please enter a valid number." -ForegroundColor "Red"
+            Start-Sleep -Seconds 5
+            $shutdownDelay = 0
+            Clear-Line -UpLine 1
+            Clear-Line -UpLine 1
+            Clear-Line
+        } elseif ($shutdownDelay -eq 0) {
+            Write-Host "Shutdown delay must be greater than 0." -ForegroundColor "Red"
+            Start-Sleep -Seconds 5
+            Clear-Line -UpLine 1
+            Clear-Line -UpLine 1
+            Clear-Line
         }
     }
     return $shutdownDelay
@@ -149,7 +162,7 @@ function Handle-Interruption {
             $newTime = Read-Host "Do you wish to enter a different time? (Y/N)"
             if ($newTime -eq 'Y') {
                 Write-Host ""  # Add a line break before the next prompt
-                $shutdownDelay = Get-UserInput -promptMessage "Enter shutdown delay in minutes"
+                $shutdownDelay = Get-ShutdownDelay
                 $remainingSeconds = [int]$shutdownDelay * 60
                 Write-Host "Countdown started for $shutdownDelay minute(s)..." -ForegroundColor "Green"
                 return $remainingSeconds  # Return new remaining seconds for the countdown
@@ -163,7 +176,7 @@ function Handle-Interruption {
 
 
 # Start script
-$shutdownDelay = Get-UserInput -promptMessage "Enter shutdown delay in minutes"
+$shutdownDelay = Get-ShutdownDelay
 $totalSeconds = [int]$shutdownDelay * 60
 
 Write-Host "Countdown started for $shutdownDelay minute(s)..." -ForegroundColor "Green"
